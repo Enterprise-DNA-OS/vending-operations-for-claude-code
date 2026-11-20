@@ -1,0 +1,5 @@
+Machine,Visit Date,Coil,Inventory,Units Added,Spoiled,Cash Collected,Cashless Sales,Driver
+VM-301,2026-11-02,A1,0,12,0,0,0,Mel Carter
+VM-301,2026-11-02,A2,0,8,0,,,Mel Carter
+VM-301,2026-11-09,A1,5,7,0,18.00,7.50,Mel Carter
+VM-301,2026-11-09,A2,6,2,0,,,Mel Carter

@@ -1,11 +1,22 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
-    "file": "name",
+    "name": "commission-statement",
+    "title": "Vending commission statement",
+    "for_each": "select site || '~' || month as id, site || ' ' || month as label from site_commission where month < to_char(current_date, 'YYYY-MM') order by site, month",
+    "file": "label",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      { "title": "Statement", "layout": "record", "sql": "select name as site, month, currency, collected_cents as collected_including_gst_cents, gst_cents, net_sales_cents as sales_excluding_gst_cents, (commission_bps / 100.0)::numeric(5,2) as commission_percent, case commission_basis when 'gross_sales' then 'Sales including GST' else 'Sales excluding GST' end as commission_on, commission_cents, paid_cents, paid_on from site_commission where site = split_part($1, '~', 1) and month = split_part($1, '~', 2)" },
+      { "title": "Machines at this site", "sql": "select m.code as machine, m.location_note as location, count(v.id)::int as visits, s.currency, sum(v.cash_cents)::bigint as cash_cents, sum(v.cashless_cents)::bigint as card_cents, sum(v.cash_cents + v.cashless_cents)::bigint as collected_cents from visits v join machines m on m.id = v.machine_id join sites s on s.id = v.site_id where s.code = split_part($1, '~', 1) and to_char(v.visit_date, 'YYYY-MM') = split_part($1, '~', 2) and v.status = 'done' group by m.code, m.location_note, s.currency order by m.code", "note": "Sales are counted from the cash and card collected on each visit in the month." }
+    ]
+  },
+  {
+    "name": "pick-sheet",
+    "title": "Route pick sheet",
+    "for_each": "select r.id::text as id, r.code || ' ' || r.name as label from routes r where r.active and exists (select 1 from pick_needs p where p.route = r.code and p.next_due <= current_date + 1) order by r.code",
+    "file": "label",
+    "sections": [
+      { "title": "Load the van", "sql": "select p.product, p.product_name, sum(p.to_fill)::int as units, count(distinct p.machine)::int as machines from pick_needs p join routes r on r.code = p.route where r.id::text = $1 and p.next_due <= current_date + 1 group by p.product, p.product_name order by p.product", "note": "Units are estimated from each slot's sales rate since the last visit. Count on arrival and fill to par." },
+      { "title": "Machine by machine", "sql": "select p.machine, p.site, p.slot, p.product_name, p.est_qty as expected_in_slot, p.par, p.to_fill from pick_needs p join routes r on r.code = p.route where r.id::text = $1 and p.next_due <= current_date + 1 order by p.machine, p.slot" }
     ]
   }
 ]

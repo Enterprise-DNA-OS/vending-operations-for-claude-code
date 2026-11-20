@@ -1,14 +1,32 @@
 [
   {
     "name": "week",
-    "title": "This week",
-    "subtitle": "Vending Operations for Claude Code: what needs attention, rendered by npm run view",
+    "title": "Vending: this week",
+    "subtitle": "What needs a person, and which machines are due",
     "sections": [
-      {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
-      }
+      { "title": "Needs attention", "sql": "select item, what, why, due from attention order by due, item" },
+      { "title": "Machines due in the next two days", "sql": "select machine, site, route, kind, last_visit, next_due, days_overdue from machine_due where next_due <= current_date + 2 order by next_due, machine" },
+      { "title": "Open service calls", "sql": "select c.code as call, m.code as machine, s.name as site, c.opened_on, c.issue from service_calls c join machines m on m.id = c.machine_id join sites s on s.id = m.site_id where c.status = 'open' order by c.opened_on" }
+    ]
+  },
+  {
+    "name": "money",
+    "title": "Vending money",
+    "subtitle": "Cash against the counts, machine earnings and host commission",
+    "sections": [
+      { "title": "Cash and card that do not match the counts", "sql": "select visit, machine, visit_date, driver, currency, expected_cents, cash_cents, cashless_cents, variance_cents from cash_variance order by visit_date desc", "note": "Expected is what the slot counts say sold, at the price on the slot. A shortfall can be a cash box, a coin jam, a wrong count or a price set differently on the machine." },
+      { "title": "Machines, last 28 days", "sql": "select machine, site, kind, currency, units, weekly_sales_cents, waste_cents, margin_cents from machine_performance order by weekly_sales_cents" },
+      { "title": "Host commission by month", "sql": "select site, name, month, currency, collected_cents, commission_cents, paid_cents, (commission_cents - paid_cents) as owed_cents from site_commission order by month desc, site" }
+    ]
+  },
+  {
+    "name": "stock",
+    "title": "Vending stock",
+    "subtitle": "What to load, what is near its date and what the warehouse holds",
+    "sections": [
+      { "title": "To load for machines due by tomorrow", "sql": "select route, product, product_name, sum(to_fill)::int as units, count(distinct machine)::int as machines from pick_needs where next_due <= current_date + 1 group by route, product, product_name order by route, product" },
+      { "title": "Near or past its date in a machine", "sql": "select machine, slot, product_name as product, date_mark, use_by, days_left from expiry order by use_by" },
+      { "title": "Warehouse", "sql": "select product, name, on_hand, earliest_date, fleet_daily_rate as sells_a_day, days_cover from warehouse order by days_cover nulls last" }
     ]
   }
 ]

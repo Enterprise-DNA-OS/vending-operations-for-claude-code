@@ -1,0 +1,13 @@
+{
+  "_comment": "Name the column in your Cantaloupe Seed export that holds each field. Check the headers in your own file first: they change with the report and its settings.",
+  "_report": "visits",
+  "machine": "Asset #",
+  "date": "Service Date",
+  "slot": "Coil",
+  "counted": "Inventory",
+  "filled": "Added",
+  "removed": "Spoiled",
+  "cash": "Cash Collected",
+  "cashless": "Cashless Sales",
+  "driver": "Route Driver"
+}
