@@ -87,7 +87,7 @@ where si.healthy_policy <> 'none'
 group by si.code, si.name, si.healthy_policy, si.everyday_min_pct
 having 100.0 * count(*) filter (where p.healthy_rating = 'everyday') / count(*) < coalesce(si.everyday_min_pct, (select value::int from settings where key = 'min_everyday_default_pct'), 75)
 union all
-select 'KJ_DISPLAY', 'medium', ss.machine || ' ' || ss.slot, ss.product_name, 'no kilojoule figure on file; the host asks for kilojoules on the machine', 'Site agreement with the host'
+select 'KJ_DISPLAY', 'medium', ss.machine || ' ' || ss.slot, ss.product_name, 'no kilojoule figure on file for this host', 'Site agreement with the host'
 from slot_state ss join products p on p.code = ss.product join machines m on m.id = ss.machine_id join sites si on si.id = m.site_id
 where si.kj_display and p.kj_per_serve is null
 order by 2, 1, 3`;
